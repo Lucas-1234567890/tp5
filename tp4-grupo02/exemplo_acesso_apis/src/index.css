@@ -1,0 +1,209 @@
+/* Mobile-first base styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* touch targets */
+button, input, textarea {
+  min-height: 44px;
+  font-size: 1rem;
+}
+
+input.error {
+  border: 1px solid #FF0000;
+}
+
+/* card style */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin: 8px 0;
+}
+
+/* skeleton screen */
+.skeleton {
+  background: #ddd;
+  border-radius: 4px;
+  min-height: 20px;
+  margin: 4px 0;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* alert and toasts */
+.toast {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 1000;
+}
+.toast.show {
+  opacity: 1;
+}
+
+/* basic form elements */
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0 12px;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* responsive utilities */
+.container {
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  .flex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+  /* for larger screens we can put two fields side by side */
+  .row-two > div {
+    flex: 1;
+  }
+}
+
+/* rubber band animation */
+.rubber {
+  animation: rubber 0.2s ease-out;
+}
+@keyframes rubber {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-20px); }
+  50% { transform: translateX(20px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
+
+/* sticky footer for actions */
+.sticky-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 8px 0;
+  text-align: center;
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.1);
+}
+/* Adicionar ao final do index.css existente */
+
+/* App shell: conteúdo + navbar fixa no rodapé */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; /* dynamic viewport height, lida com barra do browser mobile */
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+/* Navbar inferior – padrão mobile */
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #ffffff;
+  border-top: 1px solid #e0e0e0;
+  padding: 8px 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.08);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #888;
+  font-size: 0.85rem;
+  padding: 6px 24px;
+  border-radius: 8px;
+  min-height: 44px;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-item.active {
+  color: #007bff;
+  background: #e8f0fe;
+  font-weight: bold;
+}
+
+/* Pull-to-refresh */
+.ptr-container {
+  touch-action: pan-y;
+}
+
+.ptr-indicator {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+  background: #f0f4ff;
+  border-radius: 4px;
+  transition: height 0.2s;
+}
+
+/* Feedback de swipe up para lance */
+.swipe-hint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 123, 255, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  z-index: 200;
+  pointer-events: none;
+  animation: fadeInScale 0.2s ease;
+}
+
+.swipe-hint.confirmed {
+  background: rgba(40, 167, 69, 0.9);
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
