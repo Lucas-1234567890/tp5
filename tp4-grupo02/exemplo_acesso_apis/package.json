@@ -1,6 +1,6 @@
 {
-  "name": "exemplo-acesso-apis",
-  "version": "0.1.0",
+  "name": "tp5-grupo02",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "vite",
