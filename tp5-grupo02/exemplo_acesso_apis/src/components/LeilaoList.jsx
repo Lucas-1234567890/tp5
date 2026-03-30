@@ -22,12 +22,7 @@ function formatDate(raw) {
 /** Extrai o campo de data — a API pode usar nomes diferentes */
 function getDataLeilao(leilao) {
   const raw =
-    leilao.data_inicio   ??   // nome mais comum
     leilao.data          ??
-    leilao.dt_inicio     ??
-    leilao.dataInicio    ??
-    leilao.data_leilao   ??
-    leilao.data_hora     ??
     null;
   return formatDate(raw);
 }

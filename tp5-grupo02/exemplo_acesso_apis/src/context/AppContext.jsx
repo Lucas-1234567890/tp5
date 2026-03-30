@@ -1,8 +1,7 @@
 // src/context/AppContext.jsx
-// Estado global: token JWT, lista de lotes, índice atual e status de rede.
+// Estado global: token JWT, lista de lotes, índice atual, status de rede e fotos por lote.
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Export nomeado para permitir injeção direta nos testes
 export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
@@ -10,6 +9,9 @@ export function AppProvider({ children }) {
   const [leiloes, setLeiloes]           = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOnline, setIsOnline]         = useState(navigator.onLine);
+
+  // Mapa de fotos: { [loteId]: [{ id, url, timestamp }] }
+  const [lotePhotos, setLotePhotos]     = useState({});
 
   // Persiste token na sessão
   useEffect(() => {
@@ -33,7 +35,30 @@ export function AppProvider({ children }) {
     setToken(null);
     setLeiloes([]);
     setCurrentIndex(0);
+    // Mantém as fotos mesmo após logout (opcional: limpar também)
   };
+
+  /** Adiciona uma foto a um lote específico */
+  const addPhotoToLote = (loteId, photoUrl) => {
+    setLotePhotos(prev => ({
+      ...prev,
+      [loteId]: [
+        ...(prev[loteId] || []),
+        { id: Date.now(), url: photoUrl, timestamp: new Date().toISOString() },
+      ],
+    }));
+  };
+
+  /** Remove uma foto de um lote específico */
+  const removePhotoFromLote = (loteId, photoId) => {
+    setLotePhotos(prev => ({
+      ...prev,
+      [loteId]: (prev[loteId] || []).filter(p => p.id !== photoId),
+    }));
+  };
+
+  /** Retorna fotos de um lote */
+  const getPhotosForLote = (loteId) => lotePhotos[loteId] || [];
 
   return (
     <AppContext.Provider value={{
@@ -41,6 +66,10 @@ export function AppProvider({ children }) {
       leiloes, setLeiloes,
       currentIndex, setCurrentIndex,
       isOnline,
+      lotePhotos,
+      addPhotoToLote,
+      removePhotoFromLote,
+      getPhotosForLote,
     }}>
       {children}
     </AppContext.Provider>
