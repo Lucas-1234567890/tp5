@@ -12,11 +12,11 @@ export default function Camera({ onCapture, onClose }) {
   const toast      = useToast();
 
   const [photo,       setPhoto]       = useState(null);   // base64
-  const [facingMode,  setFacingMode]  = useState("environment"); // rear camera
+  const [facingMode,  setFacingMode]  = useState("environment"); 
   const [permission,  setPermission]  = useState("prompt"); // "prompt"|"granted"|"denied"
   const [cameraReady, setCameraReady] = useState(false);
 
-  // ── Start camera ─────────────────────────────────────
+
   const startCamera = async (mode = facingMode) => {
     try {
       if (streamRef.current) {
@@ -52,10 +52,10 @@ export default function Camera({ onCapture, onClose }) {
   useEffect(() => {
     startCamera();
     return () => streamRef.current?.getTracks().forEach(t => t.stop());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
-  // ── Capture photo ─────────────────────────────────────
+  
   const handleCapture = () => {
     const video  = videoRef.current;
     const canvas = canvasRef.current;
@@ -65,7 +65,7 @@ export default function Camera({ onCapture, onClose }) {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
 
-    // Mirror if front camera
+    
     if (facingMode === "user") {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
@@ -74,25 +74,24 @@ export default function Camera({ onCapture, onClose }) {
 
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
     setPhoto(dataUrl);
-    // Stop stream to save battery
+   
     streamRef.current?.getTracks().forEach(t => t.stop());
     setCameraReady(false);
   };
 
-  // ── Flip camera (only on devices with multiple cameras) ──
+ 
   const handleFlip = () => {
     const next = facingMode === "environment" ? "user" : "environment";
     setFacingMode(next);
     startCamera(next);
   };
 
-  // ── Retake ────────────────────────────────────────────
+
   const handleRetake = () => {
     setPhoto(null);
     startCamera(facingMode);
   };
 
-  // ── Confirm ───────────────────────────────────────────
   const handleConfirm = () => {
     if (photo) {
       onCapture?.(photo);
@@ -101,7 +100,6 @@ export default function Camera({ onCapture, onClose }) {
     }
   };
 
-  // ── Permission denied ─────────────────────────────────
   if (permission === "denied") {
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
@@ -121,13 +119,13 @@ export default function Camera({ onCapture, onClose }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      {/* Viewfinder or photo preview */}
+     
       {!photo ? (
         <div className="camera-container">
           <video
             ref={videoRef}
             autoPlay
-            playsInline   /* required for iOS Safari */
+            playsInline   
             muted
             style={{
               width: "100%",
@@ -136,7 +134,7 @@ export default function Camera({ onCapture, onClose }) {
               transform: facingMode === "user" ? "scaleX(-1)" : "none",
             }}
           />
-          {/* Corner guides */}
+          
           <div className="camera-overlay">
             <div className="camera-corner tl" />
             <div className="camera-corner tr" />
@@ -153,7 +151,7 @@ export default function Camera({ onCapture, onClose }) {
         <img src={photo} alt="Foto capturada" className="photo-preview" />
       )}
 
-      {/* Controls */}
+     
       <div className="camera-controls">
         {!photo ? (
           <>

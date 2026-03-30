@@ -9,7 +9,7 @@ import CameraPage  from "./components/CameraPage";
 import Navbar      from "./components/Navbar";
 import { useToast } from "./components/Toast";
 
-// ── Protected route guard ────────────────────────────
+
 function RequireAuth({ children }) {
   const { token } = useAppContext();
   return token ? children : <Navigate to="/login" replace />;
@@ -33,12 +33,12 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Public */}
+   
       <Route path="/login" element={
         token ? <Navigate to="/" replace /> : <Login onToken={setToken} />
       } />
 
-      {/* Protected shell */}
+     
       <Route path="/*" element={
         <RequireAuth>
           <div className="app-shell">

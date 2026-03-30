@@ -21,7 +21,7 @@ export default function CameraPage() {
 
   return (
     <div style={{ paddingBottom: 16 }}>
-      {/* Page header */}
+     
       <div className="page-header">
         <h1 className="page-title">📷 <span>Câmera</span></h1>
         <p style={{ fontSize: "0.82rem", color: "var(--clr-muted)", marginTop: 2 }}>

@@ -19,7 +19,6 @@ export default function LeilaoList({ token, onSelect, onData }) {
   const touchStartY  = useRef(0);
   const containerRef = useRef(null);
 
-  // ── Fetch list of auctions ──────────────────────────
   const fetchLeiloes = useCallback((isRefresh = false) => {
     if (!token) return;
     isRefresh ? setRefreshing(true) : setLoading(true);
@@ -32,7 +31,7 @@ export default function LeilaoList({ token, onSelect, onData }) {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(arr));
       })
       .catch(() => {
-        // offline: use cache
+       
         const cached = sessionStorage.getItem(CACHE_KEY);
         if (cached) setLeiloes(JSON.parse(cached));
       })
@@ -44,13 +43,13 @@ export default function LeilaoList({ token, onSelect, onData }) {
   }, [token]);
 
   useEffect(() => {
-    // try cache first for instant display
+    
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) setLeiloes(JSON.parse(cached));
     fetchLeiloes();
   }, [fetchLeiloes]);
 
-  // ── Select auction → fetch its lots ────────────────
+ 
   const handleSelectLeilao = useCallback((leilao) => {
     setLoadingId(leilao.id);
     fetch(`${BASE_URL}/leiloes/${leilao.id}/lotes`, { headers: { Authorization: `Bearer ${token}` } })
@@ -61,21 +60,21 @@ export default function LeilaoList({ token, onSelect, onData }) {
         onSelect(0);
       })
       .catch(() => {
-        // if offline use empty or cached lots
+        
         onData?.([]);
         onSelect(0);
       })
       .finally(() => setLoadingId(null));
   }, [token, onData, onSelect]);
 
-  // ── Live: random auction ────────────────────────────
+ 
   const handleLive = () => {
     if (!leiloes?.length) return;
     const random = leiloes[Math.floor(Math.random() * leiloes.length)];
     handleSelectLeilao(random);
   };
 
-  // ── Pull-to-refresh ─────────────────────────────────
+ 
   const onTouchStart = (e) => {
     if (containerRef.current?.scrollTop === 0)
       touchStartY.current = e.touches[0].clientY;
@@ -94,7 +93,7 @@ export default function LeilaoList({ token, onSelect, onData }) {
     touchStartY.current = 0;
   };
 
-  // ── Skeleton loading ────────────────────────────────
+ 
   if (loading && !leiloes) {
     return (
       <div className="container" style={{ paddingTop: 16 }}>
@@ -114,14 +113,14 @@ export default function LeilaoList({ token, onSelect, onData }) {
       onTouchEnd={onTouchEnd}
       style={{ overflowY: "auto", height: "100%", paddingTop: 8 }}
     >
-      {/* Offline banner */}
+     
       {!isOnline && (
         <div className="offline-banner">
           📡 Sem conexão — exibindo dados em cache
         </div>
       )}
 
-      {/* Pull-to-refresh indicator */}
+  
       <div
         className="ptr-indicator"
         style={{
@@ -133,7 +132,6 @@ export default function LeilaoList({ token, onSelect, onData }) {
         {refreshing ? "🔄 Atualizando…" : pullY >= PTR_THRESHOLD ? "⬆️ Solte para atualizar" : "⬇️ Puxe para atualizar"}
       </div>
 
-      {/* Live button */}
       <button
         className="btn btn-live"
         onClick={handleLive}
@@ -143,7 +141,7 @@ export default function LeilaoList({ token, onSelect, onData }) {
         Live — Ver leilão aleatório
       </button>
 
-      {/* Auction list */}
+     
       {leiloes?.map((leilao) => (
         <div
           key={leilao.id}

@@ -59,7 +59,7 @@ export default function LeilaoDetail({ lote, index, total, onChangeIndex }) {
     ["IPVA Pago",       lote.ipva_pago ? "✅ Sim" : "❌ Não"],
   ];
 
-  // pager dots: show up to 7
+  // para evitar sobrecarga visual em muitos lotes
   const maxDots = Math.min(total, 7);
   const dots    = Array.from({ length: maxDots }, (_, i) => {
     const mapped = Math.round((i / (maxDots - 1)) * (total - 1));
@@ -93,11 +93,10 @@ export default function LeilaoDetail({ lote, index, total, onChangeIndex }) {
         )}
       </div>
 
-      {/* Swipeable content */}
+    
       <div {...handlers} className={"container" + (rubber ? " rubber" : "")}
         style={{ flex: 1, overflowY: "auto", paddingTop: 4 }}>
 
-        {/* Price highlight */}
         <div className="card" style={{ background: "var(--clr-surface2)", marginTop: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div>
@@ -115,7 +114,7 @@ export default function LeilaoDetail({ lote, index, total, onChangeIndex }) {
           </div>
         </div>
 
-        {/* Fields */}
+        
         <div className="card detail-fields" style={{ padding: 0, overflow: "hidden" }}>
           {fields.map(([label, val]) => (
             <div className="field-row" key={label} style={{ padding: "10px 16px" }}>
@@ -125,7 +124,7 @@ export default function LeilaoDetail({ lote, index, total, onChangeIndex }) {
           ))}
         </div>
 
-        {/* Position counter */}
+      
         <div className="swipe-hint">
           <span>←</span>
           <span>{index + 1} de {total}</span>
@@ -140,14 +139,7 @@ export default function LeilaoDetail({ lote, index, total, onChangeIndex }) {
             ⚠ Offline — lances desabilitados
           </p>
         )}
-        <button
-          className={`btn ${bidDone ? "btn-ghost" : "btn-primary"}`}
-          style={{ width: "100%", fontSize: "1rem" }}
-          onClick={handleBid}
-          disabled={!isOnline || bidDone}
-        >
-          {bidDone ? "✅ Lance Registrado" : "🔨 Dar Lance"}
-        </button>
+       
       </div>
     </div>
   );

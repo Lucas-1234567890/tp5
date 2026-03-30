@@ -26,7 +26,7 @@ function fetchCep(cep) {
       return result;
     })
     .catch(() => {
-      // Fallback mock (offline / CORS)
+      
       if (!/^\d{8}$/.test(clean) || clean.startsWith("00000")) {
         throw new Error("Formato de CEP inválido");
       }
@@ -111,7 +111,7 @@ export default function ImovelForm({ onSave }) {
       <div className="container" style={{ paddingTop: 12 }}>
         <div className="card">
 
-          {/* ── Photo section ─────────────────────── */}
+          {/* ── Sessão de fotos ─────────────────────── */}
           <div style={{ marginBottom: 16 }}>
             {photo ? (
               <div style={{ position: "relative", borderRadius: "var(--r-md)", overflow: "hidden" }}>
@@ -166,7 +166,7 @@ export default function ImovelForm({ onSave }) {
           </div>
           {error && <p className="error-msg">⚠ {error}</p>}
 
-          {/* ── Address fields ─────────────────────── */}
+          {/* ── Campos de endereço ─────────────────────── */}
           <div className="row-two" style={{ marginTop: 4 }}>
             <div>
               <label htmlFor="logradouro">Logradouro</label>
