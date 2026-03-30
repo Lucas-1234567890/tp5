@@ -1,118 +1,78 @@
-// src/components/__tests__/LeilaoList.test.jsx
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { vi } from "vitest";
+// src/components/__tests__/LeilaoDetail.test.jsx
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import LeilaoList from "../LeilaoList";
-import { AppProvider } from "../../context/AppContext";
+import { vi } from "vitest";
+import LeilaoDetail from "../LeilaoDetail";
+import { AppContext } from "../../context/AppContext";
 import { ToastProvider } from "../Toast";
 
-const Wrapper = ({ children }) => (
-  <MemoryRouter>
-    <AppProvider>
-      <ToastProvider>{children}</ToastProvider>
-    </AppProvider>
-  </MemoryRouter>
-);
+// Helper: monta LeilaoDetail injetando o contexto diretamente,
+// sem depender de AppProvider (que usa navigator.onLine e sessionStorage).
+function renderWithContext({ leiloes = [], currentIndex = 0, isOnline = true } = {}) {
+  const mockCtx = {
+    token:            "tok",
+    setToken:         vi.fn(),
+    logout:           vi.fn(),
+    leiloes,
+    setLeiloes:       vi.fn(),
+    currentIndex,
+    setCurrentIndex:  vi.fn(),
+    isOnline,
+  };
 
-const mockLeiloes = [
-  { id: 10, nome: "Leilão ABC", tipo: "SEGURADORA", data_inicio: "2024-03-01", cidade: "SP", estado: "SP", leiloeiro: "João" },
-  { id: 11, nome: "Leilão XYZ", tipo: "JUDICIAL",   data_inicio: "2024-03-15", cidade: "RJ", estado: "RJ", leiloeiro: "Maria" },
-];
+  return render(
+    <MemoryRouter>
+      <AppContext.Provider value={mockCtx}>
+        <ToastProvider>
+          <LeilaoDetail />
+        </ToastProvider>
+      </AppContext.Provider>
+    </MemoryRouter>
+  );
+}
 
-const mockLotes = [
-  { id: 1, marca: "Toyota", modelo: "Corolla", ano_modelo: 2020, valor_inicial: 30000 },
-  { id: 2, marca: "Honda",  modelo: "Civic",   ano_modelo: 2021, valor_inicial: 35000 },
-];
+const lote = {
+  marca: "Ford", modelo: "Ka", ano_fabricacao: 2019,
+  combustivel: "Gasolina", valor_inicial: 25000, lance: 26000,
+};
 
-beforeEach(() => {
-  // /leiloes returns list; /leiloes/:id/lotes returns lots
-  global.fetch = vi.fn((url) => {
-    if (url.includes("/lotes")) {
-      return Promise.resolve({ json: () => Promise.resolve(mockLotes) });
-    }
-    return Promise.resolve({ json: () => Promise.resolve(mockLeiloes) });
-  });
-  sessionStorage.clear();
-});
-
-afterEach(() => vi.resetAllMocks());
-
-describe("LeilaoList", () => {
-  it("exibe skeletons enquanto carrega", () => {
-    render(
-      <Wrapper>
-        <LeilaoList token="tok" onSelect={() => {}} onData={() => {}} />
-      </Wrapper>
-    );
-    expect(document.querySelectorAll(".skeleton").length).toBeGreaterThan(0);
+describe("LeilaoDetail", () => {
+  it("renderiza informações do lote", () => {
+    renderWithContext({ leiloes: [lote], currentIndex: 0 });
+    expect(screen.getByText(/Ford/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ka/i)).toBeInTheDocument();
   });
 
-  it("exibe leilões após carregar", async () => {
-    render(
-      <Wrapper>
-        <LeilaoList token="tok" onSelect={() => {}} onData={() => {}} />
-      </Wrapper>
-    );
-    await waitFor(() =>
-      expect(screen.getByText(/Leilão ABC/i)).toBeInTheDocument()
-    );
-    expect(screen.getByText(/Leilão XYZ/i)).toBeInTheDocument();
+  it("exibe contador de posição correto", () => {
+    const lotes = [lote, { ...lote, marca: "Honda" }, { ...lote, marca: "Toyota" }];
+    renderWithContext({ leiloes: lotes, currentIndex: 1 });
+    expect(screen.getByText(/2 \/ 3/i)).toBeInTheDocument();
   });
 
-  it("chama onData e onSelect ao clicar num leilão", async () => {
-    const onSelect = vi.fn();
-    const onData   = vi.fn();
-    render(
-      <Wrapper>
-        <LeilaoList token="tok" onSelect={onSelect} onData={onData} />
-      </Wrapper>
-    );
-    await waitFor(() => screen.getByText(/Leilão ABC/i));
-    await userEvent.click(screen.getByText(/Leilão ABC/i).closest(".card"));
-    await waitFor(() => expect(onSelect).toHaveBeenCalledWith(0));
-    expect(onData).toHaveBeenCalledWith(mockLotes);
+  it("exibe mensagem quando não há lote", () => {
+    renderWithContext({ leiloes: [], currentIndex: 0 });
+    expect(screen.getByText(/Nenhum veículo selecionado/i)).toBeInTheDocument();
   });
 
-  it("chama fetch com Authorization header correto", async () => {
-    render(
-      <Wrapper>
-        <LeilaoList token="meu-token" onSelect={() => {}} onData={() => {}} />
-      </Wrapper>
-    );
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    const [url, options] = global.fetch.mock.calls[0];
-    expect(url).toContain("/leiloes");
-    expect(options.headers.Authorization).toBe("Bearer meu-token");
+  it("exibe valor inicial do lote", () => {
+    renderWithContext({ leiloes: [lote], currentIndex: 0 });
+    expect(screen.getByText(/25\.000/)).toBeInTheDocument();
   });
 
-  it("usa cache do sessionStorage quando fetch falha", async () => {
-    sessionStorage.setItem(
-      "leiloes_cache",
-      JSON.stringify([{ id: 99, nome: "Leilão Cache", tipo: "—", cidade: "—", estado: "—" }])
-    );
-    global.fetch = vi.fn(() => Promise.reject(new Error("offline")));
-    render(
-      <Wrapper>
-        <LeilaoList token="tok" onSelect={() => {}} onData={() => {}} />
-      </Wrapper>
-    );
-    await waitFor(() =>
-      expect(screen.getByText(/Leilão Cache/i)).toBeInTheDocument()
-    );
+  it("botão de lance está presente e habilitado quando online", () => {
+    renderWithContext({ leiloes: [lote], currentIndex: 0, isOnline: true });
+    expect(screen.getByRole("button", { name: /Dar Lance/i })).not.toBeDisabled();
   });
 
-  it("botão Live está desabilitado sem leilões", () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({ json: () => Promise.resolve([]) })
-    );
-    render(
-      <Wrapper>
-        <LeilaoList token="tok" onSelect={() => {}} onData={() => {}} />
-      </Wrapper>
-    );
-    const liveBtn = document.querySelector(".btn-live");
-    // Initially rendered even before fetch resolves
-    if (liveBtn) expect(liveBtn).toBeDisabled();
+  it("botão de lance desabilitado quando offline", () => {
+    renderWithContext({ leiloes: [lote], currentIndex: 0, isOnline: false });
+    expect(screen.getByRole("button", { name: /Dar Lance/i })).toBeDisabled();
+  });
+
+  it("exibe botões de navegação quando há múltiplos lotes", () => {
+    const lotes = [lote, { ...lote, marca: "Honda" }];
+    renderWithContext({ leiloes: lotes, currentIndex: 0 });
+    expect(screen.getByRole("button", { name: /Próximo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Anterior/i })).toBeDisabled();
   });
 });

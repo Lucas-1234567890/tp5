@@ -2,7 +2,8 @@
 // Estado global: token JWT, lista de lotes, índice atual e status de rede.
 import { createContext, useContext, useEffect, useState } from "react";
 
-const AppContext = createContext(null);
+// Export nomeado para permitir injeção direta nos testes
+export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [token, setToken]               = useState(() => sessionStorage.getItem("jwt") || null);

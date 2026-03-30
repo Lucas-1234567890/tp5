@@ -8,6 +8,30 @@ const BASE_URL   = "http://ec2-3-20-227-42.us-east-2.compute.amazonaws.com:3000"
 const CACHE_KEY  = "leiloes_cache";
 const PTR_THRESHOLD = 80;
 
+/** Formata qualquer string de data para dd/mm/aaaa — retorna null se inválida */
+function formatDate(raw) {
+  if (!raw) return null;
+  // ISO: "2024-03-15" ou "2024-03-15T00:00:00.000Z"
+  const iso = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  // Já no formato dd/mm/aaaa
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(raw)) return raw.slice(0, 10);
+  return raw; // devolve como veio se não reconhecer
+}
+
+/** Extrai o campo de data — a API pode usar nomes diferentes */
+function getDataLeilao(leilao) {
+  const raw =
+    leilao.data_inicio   ??   // nome mais comum
+    leilao.data          ??
+    leilao.dt_inicio     ??
+    leilao.dataInicio    ??
+    leilao.data_leilao   ??
+    leilao.data_hora     ??
+    null;
+  return formatDate(raw);
+}
+
 export default function LeilaoList({ token, onSelect, onData }) {
   const { isOnline } = useAppContext();
   const [leiloes,       setLeiloes]       = useState(null);
@@ -31,7 +55,6 @@ export default function LeilaoList({ token, onSelect, onData }) {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(arr));
       })
       .catch(() => {
-       
         const cached = sessionStorage.getItem(CACHE_KEY);
         if (cached) setLeiloes(JSON.parse(cached));
       })
@@ -43,13 +66,11 @@ export default function LeilaoList({ token, onSelect, onData }) {
   }, [token]);
 
   useEffect(() => {
-    
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) setLeiloes(JSON.parse(cached));
     fetchLeiloes();
   }, [fetchLeiloes]);
 
- 
   const handleSelectLeilao = useCallback((leilao) => {
     setLoadingId(leilao.id);
     fetch(`${BASE_URL}/leiloes/${leilao.id}/lotes`, { headers: { Authorization: `Bearer ${token}` } })
@@ -60,21 +81,18 @@ export default function LeilaoList({ token, onSelect, onData }) {
         onSelect(0);
       })
       .catch(() => {
-        
         onData?.([]);
         onSelect(0);
       })
       .finally(() => setLoadingId(null));
   }, [token, onData, onSelect]);
 
- 
   const handleLive = () => {
     if (!leiloes?.length) return;
     const random = leiloes[Math.floor(Math.random() * leiloes.length)];
     handleSelectLeilao(random);
   };
 
- 
   const onTouchStart = (e) => {
     if (containerRef.current?.scrollTop === 0)
       touchStartY.current = e.touches[0].clientY;
@@ -93,7 +111,6 @@ export default function LeilaoList({ token, onSelect, onData }) {
     touchStartY.current = 0;
   };
 
- 
   if (loading && !leiloes) {
     return (
       <div className="container" style={{ paddingTop: 16 }}>
@@ -113,14 +130,12 @@ export default function LeilaoList({ token, onSelect, onData }) {
       onTouchEnd={onTouchEnd}
       style={{ overflowY: "auto", height: "100%", paddingTop: 8 }}
     >
-     
       {!isOnline && (
         <div className="offline-banner">
           📡 Sem conexão — exibindo dados em cache
         </div>
       )}
 
-  
       <div
         className="ptr-indicator"
         style={{
@@ -141,35 +156,39 @@ export default function LeilaoList({ token, onSelect, onData }) {
         Live — Ver leilão aleatório
       </button>
 
-     
-      {leiloes?.map((leilao) => (
-        <div
-          key={leilao.id}
-          className="card card-interactive leilao-card fade-up"
-          onClick={() => handleSelectLeilao(leilao)}
-          style={{ opacity: loadingId === leilao.id ? 0.5 : 1, cursor: "pointer" }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={e => e.key === "Enter" && handleSelectLeilao(leilao)}
-        >
-          {loadingId === leilao.id && (
-            <p style={{ fontSize: "0.8rem", color: "var(--clr-accent)", marginBottom: 4 }}>
-              ⏳ Carregando lotes…
-            </p>
-          )}
-          <div className="card-title">{leilao.nome || `Leilão #${leilao.id}`}</div>
-          <div className="card-meta">
-            <span>📅 {leilao.data_inicio || "—"}</span>
-            <span>📍 {leilao.cidade || "—"}/{leilao.estado || "—"}</span>
+      {leiloes?.map((leilao) => {
+        const dataFormatada = getDataLeilao(leilao);
+
+        return (
+          <div
+            key={leilao.id}
+            className="card card-interactive leilao-card fade-up"
+            onClick={() => handleSelectLeilao(leilao)}
+            style={{ opacity: loadingId === leilao.id ? 0.5 : 1, cursor: "pointer" }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => e.key === "Enter" && handleSelectLeilao(leilao)}
+          >
+            {loadingId === leilao.id && (
+              <p style={{ fontSize: "0.8rem", color: "var(--clr-accent)", marginBottom: 4 }}>
+                ⏳ Carregando lotes…
+              </p>
+            )}
+            <div className="card-title">{leilao.nome || `Leilão #${leilao.id}`}</div>
+            <div className="card-meta">
+              {/* Data: usa getDataLeilao com fallback */}
+              <span>📅 {dataFormatada ?? "—"}</span>
+              <span>📍 {leilao.cidade || "—"}/{leilao.estado || leilao.uf || "—"}</span>
+            </div>
+            <div className="card-footer">
+              <span className="badge badge-primary">{leilao.tipo || "—"}</span>
+              <span style={{ fontSize: "0.8rem", color: "var(--clr-muted)" }}>
+                {leilao.leiloeiro || "—"}
+              </span>
+            </div>
           </div>
-          <div className="card-footer">
-            <span className="badge badge-primary">{leilao.tipo || "—"}</span>
-            <span style={{ fontSize: "0.8rem", color: "var(--clr-muted)" }}>
-              {leilao.leiloeiro || "—"}
-            </span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
 
       {leiloes?.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 0", color: "var(--clr-muted)" }}>
